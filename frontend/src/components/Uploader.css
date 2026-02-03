@@ -1,0 +1,141 @@
+.uploader-container {
+  margin-bottom: 30px;
+}
+
+.upload-area {
+  background: rgba(255, 255, 255, 0.95);
+  border: 3px dashed #667eea;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.upload-area:hover {
+  border-color: #764ba2;
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+}
+
+.upload-area.active {
+  border-color: #764ba2;
+  background: rgba(102, 126, 234, 0.05);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.upload-area.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: #ccc;
+}
+
+.upload-area.disabled:hover {
+  border-color: #ccc;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.upload-content {
+  width: 100%;
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.upload-area h2 {
+  color: #333;
+  font-size: 24px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.upload-area p {
+  color: #666;
+  font-size: 14px;
+  margin: 5px 0;
+  font-weight: 300;
+}
+
+.supported-formats {
+  color: #999 !important;
+  font-size: 12px !important;
+  margin-top: 15px !important;
+}
+
+.selected-file {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f0f4ff;
+  border-radius: 8px;
+  border: 1px solid #667eea;
+}
+
+.selected-file p {
+  color: #667eea;
+  font-size: 14px;
+  margin: 0;
+}
+
+.selected-file strong {
+  color: #764ba2;
+  word-break: break-all;
+}
+
+.upload-tips {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.upload-tips h3 {
+  color: #333;
+  font-size: 14px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.upload-tips ul {
+  list-style: none;
+  padding: 0;
+}
+
+.upload-tips li {
+  color: #666;
+  font-size: 12px;
+  padding: 6px 0;
+  font-weight: 300;
+}
+
+.upload-tips li:before {
+  content: "✓ ";
+  color: #667eea;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .upload-area {
+    padding: 40px 20px;
+    min-height: 250px;
+  }
+
+  .upload-icon {
+    font-size: 36px;
+    margin-bottom: 15px;
+  }
+
+  .upload-area h2 {
+    font-size: 18px;
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "ugoku-memo-transformer",
+  "version": "1.0.0",
+  "description": "Transform images and videos into animated memo-style animations",
+  "main": "server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "build": "cd frontend && npm run build",
+    "frontend": "cd frontend && npm start"
+  },
+  "keywords": [
+    "animation",
+    "memo",
+    "image",
+    "video",
+    "transformer"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "sharp": "^0.33.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
