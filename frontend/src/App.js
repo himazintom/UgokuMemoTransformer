@@ -9,6 +9,23 @@ function App() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [outputFormat, setOutputFormat] = useState('gif');
+  const [numColors, setNumColors] = useState(8);
+  const [pixelSize, setPixelSize] = useState(4);
+
+  const memoStyles = {
+    classic: { name: 'Classic Memo', num_colors: 8, pixel_size: 4 },
+    minimalist: { name: 'Minimalist B&W', num_colors: 2, pixel_size: 3 },
+    detailed: { name: 'Detailed Colors', num_colors: 16, pixel_size: 2 },
+    heavy_dots: { name: 'Heavy Dots', num_colors: 6, pixel_size: 6 },
+    fine_dots: { name: 'Fine Dots', num_colors: 10, pixel_size: 2 },
+  };
+
+  const handleStyleChange = (style) => {
+    if (memoStyles[style]) {
+      setNumColors(memoStyles[style].num_colors);
+      setPixelSize(memoStyles[style].pixel_size);
+    }
+  };
 
   const handleFileUpload = async (file) => {
     setLoading(true);
@@ -19,6 +36,8 @@ function App() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('format', outputFormat);
+      formData.append('num_colors', numColors);
+      formData.append('pixel_size', pixelSize);
 
       const response = await axios.post('/api/transform', formData, {
         headers: {
@@ -45,7 +64,7 @@ function App() {
 
       <main className="app-main">
         <div className="controls-section">
-          <div className="format-selector">
+          <div className="control-group">
             <label htmlFor="format-select">Output Format:</label>
             <select
               id="format-select"
@@ -56,6 +75,54 @@ function App() {
               <option value="gif">GIF</option>
               <option value="video">Video (MP4)</option>
             </select>
+          </div>
+
+          <div className="control-group">
+            <label>Memo Style Presets:</label>
+            <div className="style-buttons">
+              {Object.entries(memoStyles).map(([key, style]) => (
+                <button
+                  key={key}
+                  className={`style-btn ${numColors === style.num_colors && pixelSize === style.pixel_size ? 'active' : ''}`}
+                  onClick={() => handleStyleChange(key)}
+                  disabled={loading}
+                >
+                  {style.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="control-group">
+            <label htmlFor="colors-slider">
+              Colors: <span className="value">{numColors}</span>
+            </label>
+            <input
+              id="colors-slider"
+              type="range"
+              min="2"
+              max="256"
+              value={numColors}
+              onChange={(e) => setNumColors(parseInt(e.target.value))}
+              disabled={loading}
+              className="slider"
+            />
+          </div>
+
+          <div className="control-group">
+            <label htmlFor="pixel-slider">
+              Pixel Size: <span className="value">{pixelSize}</span>
+            </label>
+            <input
+              id="pixel-slider"
+              type="range"
+              min="1"
+              max="8"
+              value={pixelSize}
+              onChange={(e) => setPixelSize(parseInt(e.target.value))}
+              disabled={loading}
+              className="slider"
+            />
           </div>
         </div>
 

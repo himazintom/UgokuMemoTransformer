@@ -45,6 +45,14 @@ def transform_media():
         if output_format not in ['gif', 'video']:
             output_format = 'gif'
 
+        # Get memo style parameters
+        num_colors = request.form.get('num_colors', 8, type=int)
+        pixel_size = request.form.get('pixel_size', 4, type=int)
+
+        # Validate parameters
+        num_colors = max(2, min(256, num_colors))  # 2-256 colors
+        pixel_size = max(1, min(8, pixel_size))  # 1-8 pixel size
+
         # Create unique job ID
         job_id = str(uuid.uuid4())
         job_folder = os.path.join(OUTPUT_FOLDER, job_id)
@@ -63,8 +71,8 @@ def transform_media():
             # Load image
             frames = upload_path
 
-        # Create animated frames
-        animated_frames = create_animated_memo_frames(frames, job_folder)
+        # Create animated frames with memo style
+        animated_frames = create_animated_memo_frames(frames, job_folder, num_colors, pixel_size)
 
         # Create output file
         if output_format == 'gif':

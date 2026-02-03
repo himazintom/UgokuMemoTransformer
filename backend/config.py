@@ -25,39 +25,39 @@ ANIMATION_SETTINGS = {
     'animation_style': 'memo',  # 'memo', 'sketch', 'paint', 'bold'
 }
 
-# Memo Style Presets
+# Memo Style Presets (based on DS Ugoku Memo app)
+# num_colors: how many colors (lower = more abstract)
+# pixel_size: pixelation level (higher = more dotified)
 MEMO_STYLES = {
-    'memo': {
-        'name': 'Classic Memo Notebook',
-        'texture_intensity': 0.08,
-        'onion_skin_intensity': 0.15,
-        'pen_color': (0, 0, 0),
-        'animation_steps': 25,
-        'description': 'Traditional hand-drawn memo notebook style'
+    'classic': {
+        'name': 'Classic Memo',
+        'num_colors': 8,
+        'pixel_size': 4,
+        'description': 'Traditional DS memo app style - balanced colors and dots'
     },
-    'sketch': {
-        'name': 'Light Sketch',
-        'texture_intensity': 0.12,
-        'onion_skin_intensity': 0.1,
-        'pen_color': (50, 50, 50),
-        'animation_steps': 30,
-        'description': 'Light and airy sketch style'
+    'minimalist': {
+        'name': 'Minimalist Black & White',
+        'num_colors': 2,
+        'pixel_size': 3,
+        'description': 'High contrast black and white only'
     },
-    'paint': {
-        'name': 'Watercolor Paint',
-        'texture_intensity': 0.15,
-        'onion_skin_intensity': 0.2,
-        'pen_color': (40, 40, 40),
-        'animation_steps': 20,
-        'description': 'Soft watercolor painting style'
+    'detailed': {
+        'name': 'Detailed Colors',
+        'num_colors': 16,
+        'pixel_size': 2,
+        'description': 'More colors for better detail'
     },
-    'bold': {
-        'name': 'Bold Drawing',
-        'texture_intensity': 0.05,
-        'onion_skin_intensity': 0.08,
-        'pen_color': (0, 0, 0),
-        'animation_steps': 20,
-        'description': 'High contrast bold drawing'
+    'heavy_dots': {
+        'name': 'Heavy Dots',
+        'num_colors': 6,
+        'pixel_size': 6,
+        'description': 'Large pixels for chunky dot effect'
+    },
+    'fine_dots': {
+        'name': 'Fine Dots',
+        'num_colors': 10,
+        'pixel_size': 2,
+        'description': 'Small pixels for finer detail'
     },
 }
 

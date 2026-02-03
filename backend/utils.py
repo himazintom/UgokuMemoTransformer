@@ -41,62 +41,81 @@ def extract_video_frames(video_path, max_frames=30):
     cap.release()
     return frames
 
-def apply_edge_detection(image):
-    """Apply edge detection to highlight important features"""
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray, 100, 200)
-    return edges
+def posterize_image(image, num_colors=8):
+    """
+    Reduce color palette (posterization)
+    Converts image to limited color palette like classic memo app
+    """
+    # Convert to appropriate color space
+    pixels = image.reshape((-1, 3))
+    pixels = np.float32(pixels)
 
-def add_paper_texture(image, texture_intensity=0.1):
-    """Add paper texture to the image"""
-    height, width = image.shape[:2]
+    # K-means clustering to reduce colors
+    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+    _, labels, centers = cv2.kmeans(pixels, num_colors, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
 
-    # Create noise pattern
-    noise = np.random.randint(240, 256, (height, width, 3), dtype=np.uint8)
+    # Convert back to 8-bit
+    centers = np.uint8(centers)
+    result = centers[labels.flatten()]
+    result = result.reshape(image.shape)
 
-    # Blend with original
-    result = cv2.addWeighted(image, 1 - texture_intensity, noise, texture_intensity, 0)
     return result
 
-def trace_contours(image):
-    """Trace contours for smoother line drawing"""
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
-    contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    return contours
-
-def draw_stroke_with_pressure(canvas, points, start_idx, end_idx, color=(0, 0, 0)):
+def pixelate_image(image, pixel_size=4):
     """
-    Draw stroke with varying pressure effect
-    Simulates hand-drawn lines by varying thickness
+    Pixelate/dot-ify the image
+    Reduces resolution for classic memo style appearance
     """
-    if end_idx > len(points):
-        end_idx = len(points)
+    small = cv2.resize(image, (image.shape[1] // pixel_size, image.shape[0] // pixel_size),
+                       interpolation=cv2.INTER_LINEAR)
+    result = cv2.resize(small, (image.shape[1], image.shape[0]),
+                        interpolation=cv2.INTER_NEAREST)
+    return result
 
-    if end_idx <= start_idx:
-        return
+def convert_to_memo_style(image, num_colors=8, pixel_size=4):
+    """
+    Convert image to memo notebook style
+    - Reduce colors to limited palette
+    - Pixelate for dot-like appearance
+    """
+    # Reduce colors
+    memo_image = posterize_image(image, num_colors)
+    # Pixelate
+    memo_image = pixelate_image(memo_image, pixel_size)
+    return memo_image
 
-    segment = points[start_idx:end_idx]
+def detect_frame_difference(frame1, frame2, threshold=30):
+    """
+    Detect differences between two frames
+    Returns binary mask of changed pixels
+    """
+    diff = cv2.absdiff(frame1, frame2)
+    gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+    _, binary = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY)
+    return binary
 
-    for i in range(len(segment) - 1):
-        pt1 = tuple(segment[i][0])
-        pt2 = tuple(segment[i + 1][0])
+def get_changed_pixels(frame1_memo, frame2_memo, threshold=30):
+    """
+    Get pixels that changed between frames
+    Used for progressive animation drawing
+    """
+    diff_mask = detect_frame_difference(frame1_memo, frame2_memo, threshold)
+    changed_pixels = cv2.findNonZero(diff_mask)
+    return changed_pixels if changed_pixels is not None else []
 
-        # Vary stroke width based on position (pressure effect)
-        progress = i / max(1, len(segment) - 1)
-        thickness = max(1, int(3 + 2 * np.sin(progress * np.pi)))
-
-        cv2.line(canvas, pt1, pt2, color, thickness, cv2.LINE_AA)
-
-def create_animated_memo_frames(image_or_frames, output_dir, animation_style='memo'):
+def create_animated_memo_frames(image_or_frames, output_dir, num_colors=8, pixel_size=4):
     """
     Create animated memo-style frames from image or video frames
-    Returns list of frame paths
+    Uses color reduction and pixelation like the classic DS memo app
 
-    animation_style:
-      - 'memo': Hand-drawn memo notebook style with stroke animation
-      - 'sketch': Sketch-like with lighter strokes
-      - 'paint': Paint-like with blended colors
+    Args:
+        image_or_frames: Path to image or list of video frames
+        output_dir: Directory to save output frames
+        num_colors: Number of colors to reduce to (default: 8)
+        pixel_size: Pixel size for dotification (default: 4)
+
+    Returns:
+        List of animated frame paths
     """
     if isinstance(image_or_frames, str):
         # It's an image path
@@ -106,70 +125,48 @@ def create_animated_memo_frames(image_or_frames, output_dir, animation_style='me
     else:
         frames = image_or_frames
 
+    # Convert all frames to memo style first
+    memo_frames = []
+    for frame in frames:
+        memo_frame = convert_to_memo_style(frame, num_colors, pixel_size)
+        memo_frames.append(memo_frame)
+
     animated_frames = []
-    num_animation_steps = 25
-    prev_canvas = None
+    num_animation_steps = 15
+    prev_memo_frame = np.ones_like(frames[0], dtype=np.uint8) * 255
 
-    for frame_idx, frame in enumerate(frames):
-        # Get contours for smoother line drawing
-        contours = trace_contours(frame)
+    for frame_idx, memo_frame in enumerate(memo_frames):
+        # Get changed pixels between this frame and previous
+        changed_pixels = get_changed_pixels(prev_memo_frame, memo_frame, threshold=15)
+        num_changes = len(changed_pixels)
 
-        # Get edges as fallback
-        edges = apply_edge_detection(frame)
-        edge_pixels = cv2.findNonZero(edges)
-
-        # Create animated sequence - draw strokes gradually
+        # Create animated sequence - draw changed pixels gradually
         for step in range(num_animation_steps):
             progress = step / num_animation_steps
 
-            # Create blank canvas with paper texture
-            canvas = np.ones_like(frame, dtype=np.uint8) * 255
-            canvas = add_paper_texture(canvas, texture_intensity=0.08)
+            # Start with previous frame
+            canvas = prev_memo_frame.copy()
 
-            # Draw contours progressively (if available)
-            if contours:
-                total_points = sum(len(contour) for contour in contours)
-                points_to_draw = int(total_points * progress)
-
-                drawn = 0
-                for contour in contours:
-                    contour_len = len(contour)
-                    if drawn + contour_len <= points_to_draw:
-                        # Draw entire contour
-                        draw_stroke_with_pressure(canvas, contour, 0, contour_len)
-                        drawn += contour_len
-                    else:
-                        # Draw partial contour
-                        remaining = points_to_draw - drawn
-                        if remaining > 0:
-                            draw_stroke_with_pressure(canvas, contour, 0, remaining)
-                        break
-
-            # Fallback: draw edges if no contours
-            if not contours and edge_pixels is not None:
-                num_pixels = len(edge_pixels)
-                num_to_draw = int(num_pixels * progress)
+            # Draw changed pixels progressively
+            if num_changes > 0:
+                num_to_draw = int(num_changes * progress)
 
                 for i in range(num_to_draw):
-                    pt = tuple(edge_pixels[i][0])
-                    cv2.circle(canvas, pt, 2, (0, 0, 0), -1)
+                    pt = tuple(changed_pixels[i][0])
+                    # Get color from target frame
+                    color = tuple(memo_frame[pt[1], pt[0]])
+                    cv2.circle(canvas, pt, 2, color, -1)
 
-            # Add onion skin effect (show previous frame lightly)
-            if prev_canvas is not None and step > 0:
-                # Blend with previous frame at low alpha
-                canvas = cv2.addWeighted(canvas, 0.7, prev_canvas, 0.15, 0)
-
-            # Blend with original gradually for color preservation
-            alpha = progress * 0.2
-            result = cv2.addWeighted(canvas, 1 - alpha, frame, alpha, 0)
+            # At final step, blend with full target frame
+            if step == num_animation_steps - 1:
+                canvas = memo_frame.copy()
 
             # Save frame
             frame_path = os.path.join(output_dir, f'frame_{frame_idx:04d}_{step:02d}.png')
-            cv2.imwrite(frame_path, result)
+            cv2.imwrite(frame_path, canvas)
             animated_frames.append(frame_path)
 
-            if step == num_animation_steps - 1:
-                prev_canvas = canvas.copy()
+        prev_memo_frame = memo_frame.copy()
 
     return animated_frames
 
