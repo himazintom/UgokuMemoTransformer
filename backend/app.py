@@ -4,7 +4,7 @@ import os
 import uuid
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from config import UPLOAD_FOLDER, OUTPUT_FOLDER, ALLOWED_EXTENSIONS
+from config import UPLOAD_FOLDER, OUTPUT_FOLDER, ALLOWED_EXTENSIONS, MEMO_STYLES
 from utils import (
     is_allowed_file, is_video_file, extract_video_frames,
     create_animated_memo_frames, create_gif_from_frames, create_video_from_frames
